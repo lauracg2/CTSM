@@ -74,6 +74,41 @@ contains
     end if
 
   end function is_hydrologically_active
+  
+    !-----------------------------------------------------------------------
+  function is_perv_road(col_itype, lun_itype) &
+       result(hydrologically_active_perv_road)
+    !
+    ! !DESCRIPTION:
+    ! Returns a logical value saying whether the given column type is the urban pervious road
+    !
+    ! Note that calling this can be bad for performance, because it operates on a single
+    ! point rather than a loop. So in performance-critical parts of the code (or just
+    ! about anywhere, really), you should use the pre-set col%hydrologically_active(c).
+    !
+    ! !USES:
+    use landunit_varcon, only : istsoil, istcrop
+    !
+    ! !ARGUMENTS:
+    logical :: hydrologically_active_perv_road  ! function result
+    integer, intent(in) :: col_itype  ! col%itype value
+    integer, intent(in) :: lun_itype  ! lun%itype value for the landunit on which this column sits
+    !
+    ! !LOCAL VARIABLES:
+
+    character(len=*), parameter :: subname = 'is_perv_road'
+    !-----------------------------------------------------------------------
+
+    ! If we had an easy way to figure out which landunit a column was on based on
+    ! col_itype (which would be very helpful!), then we wouldn't need lun_itype.
+
+    if (col_itype == icol_road_perv) then
+       hydrologically_active_perv_road = .true.
+    else
+       hydrologically_active_perv_road = .false.
+    end if
+
+  end function is_perv_road
 
   
   !-----------------------------------------------------------------------
