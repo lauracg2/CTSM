@@ -537,8 +537,24 @@ contains
 
                 soilstate_inst%bd_col(c,lev)        = (1._r8 - soilstate_inst%watsat_col(c,lev))*params_inst%pd
                 ! do not allow watsat_sf to push watsat above 0.93
-                soilstate_inst%watsat_col(c,lev)    = min(params_inst%watsat_sf * ( (1._r8 - om_frac) * &
-                                                      soilstate_inst%watsat_col(c,lev) + om_watsat*om_frac ), 0.93_r8)
+                
+                !Laura C. Gray is attempting to change porosity for rain gardens
+                do c = begc,endc
+                   l = col%landunit(c)
+
+                      if (lun%itype(l) == isturb_hd .or. isturb_md .and. col%itype(c) == icol_road_perv) then 
+                         soilstate_inst%watsat_col(c,lev) = 0.44_r8
+                      else
+                        soilstate_inst%watsat_col(c,lev)    = min(params_inst%watsat_sf * ( (1._r8 - om_frac) * &
+                                                              soilstate_inst%watsat_col(c,lev) + om_watsat*om_frac ), 0.93_r8)
+                end do
+                
+                !original porosity function has been commented out below
+                !soilstate_inst%watsat_col(c,lev)    = min(params_inst%watsat_sf * ( (1._r8 - om_frac) * &
+                !                                      soilstate_inst%watsat_col(c,lev) + om_watsat*om_frac ), 0.93_r8)
+                
+                !this is the end of Laura doing things
+                
                 tkm                                 = (1._r8-om_frac) * (params_inst%tkd_sand*sand+params_inst%tkd_clay*clay)/ &
                                                       (sand+clay)+params_inst%tkm_om*om_frac ! W/(m K)
                 soilstate_inst%bsw_col(c,lev)       = params_inst%bsw_sf * ( (1._r8-om_frac) * &
