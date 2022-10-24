@@ -542,7 +542,7 @@ contains
                 do c = begc,endc
                    l = col%landunit(c)
 
-                      if (lun%itype(l) == isturb_hd .or. isturb_md .and. col%itype(c) == icol_road_perv) then 
+                      if (lun%itype(l) == isturb_hd .or. isturb_md .and. col%itype(c) == icol_road_perv .and. lev <= 6) then 
                          soilstate_inst%watsat_col(c,lev) = 0.44_r8
                       else
                         soilstate_inst%watsat_col(c,lev)    = min(params_inst%watsat_sf * ( (1._r8 - om_frac) * &
