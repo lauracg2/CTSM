@@ -581,8 +581,23 @@ contains
                 else
                    uncon_hksat = 0._r8
                 end if
-                soilstate_inst%hksat_col(c,lev)  = params_inst%hksat_sf * ( uncon_frac*uncon_hksat + &
-                                                   (perc_frac*om_frac)*om_hksat )
+                
+                !Laura C. Gray is attempting to change saturated hydraulic conductivity for rain gardens
+                do c = begc,endc
+                   l = col%landunit(c)
+
+                      if (lun%itype(l) == isturb_hd .or. isturb_md .and. col%itype(c) == icol_road_perv .and. lev <= 6) then 
+                         soilstate_inst%hksat_col(c,lev) = 0.0325_r8
+                      else
+                         soilstate_inst%hksat_col(c,lev) = params_inst%hksat_sf * ( uncon_frac*uncon_hksat + &
+                                                           (perc_frac*om_frac)*om_hksat )
+
+                end do
+                !original saturated hydraulic conductivity function has been commented out below
+                
+                !soilstate_inst%hksat_col(c,lev)  = params_inst%hksat_sf * ( uncon_frac*uncon_hksat + &
+                !                                   (perc_frac*om_frac)*om_hksat )
+                !this is the end of Laura doing things  
 
                 soilstate_inst%tkmg_col(c,lev)   = tkm ** (1._r8- soilstate_inst%watsat_col(c,lev))           
 
