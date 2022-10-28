@@ -212,6 +212,9 @@ contains
     real(r8)           :: residual_clay_frac            ! temporary for paramfile implementation of +/- residual clay percentage
     real(r8)           :: perturbed_residual_clay_frac  ! temporary for paramfile implementation of +/- residual clay percentage
     integer            :: dimid                         ! dimension id
+    !Laura C. Gray adding a variable for the number of layers for the rain garden
+    integer            :: nlevgard     = 6_r8           ! number of layers of the soil layers being changed to represent the rain garden
+    !End of Laura adding a variable
     logical            :: readvar 
     type(file_desc_t)  :: ncid                          ! netcdf id
     real(r8) ,pointer  :: zsoifl (:)                    ! Output: [real(r8) (:)]  original soil midpoint 
@@ -542,11 +545,14 @@ contains
                 do c = begc,endc
                    l = col%landunit(c)
 
-                      if (lun%itype(l) == isturb_hd .or. isturb_md .and. col%itype(c) == icol_road_perv .and. lev <= 6) then 
+                      if (lun%itype(l) == isturb_hd .or. isturb_md .and. col%itype(c) == icol_road_perv .and. lev <= nlevgard) then 
                          soilstate_inst%watsat_col(c,lev) = 0.44_r8
                       else
                         soilstate_inst%watsat_col(c,lev)    = min(params_inst%watsat_sf * ( (1._r8 - om_frac) * &
                                                               soilstate_inst%watsat_col(c,lev) + om_watsat*om_frac ), 0.93_r8)
+                   
+                      print soilstate_inst%watsat_col(c,lev), "Laura's changes worked!"
+                   
                 end do
                 
                 !original porosity function has been commented out below
@@ -586,11 +592,12 @@ contains
                 do c = begc,endc
                    l = col%landunit(c)
 
-                      if (lun%itype(l) == isturb_hd .or. isturb_md .and. col%itype(c) == icol_road_perv .and. lev <= 6) then 
+                      if (lun%itype(l) == isturb_hd .or. isturb_md .and. col%itype(c) == icol_road_perv .and. lev <= nlevgard) then 
                          soilstate_inst%hksat_col(c,lev) = 0.0325_r8
                       else
                          soilstate_inst%hksat_col(c,lev) = params_inst%hksat_sf * ( uncon_frac*uncon_hksat + &
                                                            (perc_frac*om_frac)*om_hksat )
+                      print soilstate_inst%hksat_col(c,lev), "Laura's changes worked!"
 
                 end do
                 !original saturated hydraulic conductivity function has been commented out below
