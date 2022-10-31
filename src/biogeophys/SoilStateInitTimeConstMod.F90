@@ -542,18 +542,14 @@ contains
                 ! do not allow watsat_sf to push watsat above 0.93
                 
                 !Laura C. Gray is attempting to change porosity for rain gardens
-                do c = begc,endc
-                   l = col%landunit(c)
 
-                      if (lun%itype(l) == isturb_hd .or. isturb_md .and. col%itype(c) == icol_road_perv .and. lev <= nlevgard) then 
-                         soilstate_inst%watsat_col(c,lev) = 0.44_r8
-                      else
-                        soilstate_inst%watsat_col(c,lev)    = min(params_inst%watsat_sf * ( (1._r8 - om_frac) * &
-                                                              soilstate_inst%watsat_col(c,lev) + om_watsat*om_frac ), 0.93_r8)
+                if (lun%itype(l) == urban_tbd .or. urban_md .and. col%itype(c) == icol_road_perv .and. lev <= nlevgard) then 
+                   soilstate_inst%watsat_col(c,lev) = 0.44_r8
+                else
+                   soilstate_inst%watsat_col(c,lev)    = min(params_inst%watsat_sf * ( (1._r8 - om_frac) * &
+                                                              soilstate_inst%watsat_col(c,lev) + om_watsat*om_frac ), 0.93_r8)   
+                print soilstate_inst%watsat_col(c,lev), "Laura's changes worked!"
                    
-                      print soilstate_inst%watsat_col(c,lev), "Laura's changes worked!"
-                   
-                end do
                 
                 !original porosity function has been commented out below
                 !soilstate_inst%watsat_col(c,lev)    = min(params_inst%watsat_sf * ( (1._r8 - om_frac) * &
@@ -589,17 +585,13 @@ contains
                 end if
                 
                 !Laura C. Gray is attempting to change saturated hydraulic conductivity for rain gardens
-                do c = begc,endc
-                   l = col%landunit(c)
+                if (lun%itype(l) == urban_hd .or. urban_md .and. col%itype(c) == icol_road_perv .and. lev <= nlevgard) then 
+                   soilstate_inst%hksat_col(c,lev) = 0.0325_r8
+                else
+                   soilstate_inst%hksat_col(c,lev) = params_inst%hksat_sf * ( uncon_frac*uncon_hksat + &
+                                                     (perc_frac*om_frac)*om_hksat )
+                print soilstate_inst%hksat_col(c,lev), "Laura's changes worked!"
 
-                      if (lun%itype(l) == isturb_hd .or. isturb_md .and. col%itype(c) == icol_road_perv .and. lev <= nlevgard) then 
-                         soilstate_inst%hksat_col(c,lev) = 0.0325_r8
-                      else
-                         soilstate_inst%hksat_col(c,lev) = params_inst%hksat_sf * ( uncon_frac*uncon_hksat + &
-                                                           (perc_frac*om_frac)*om_hksat )
-                      print soilstate_inst%hksat_col(c,lev), "Laura's changes worked!"
-
-                end do
                 !original saturated hydraulic conductivity function has been commented out below
                 
                 !soilstate_inst%hksat_col(c,lev)  = params_inst%hksat_sf * ( uncon_frac*uncon_hksat + &
