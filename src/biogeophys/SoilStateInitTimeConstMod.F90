@@ -172,7 +172,7 @@ contains
     use clm_varcon          , only : secspday, denh2o, denice, grlnd
     use clm_varctl          , only : use_cn, use_lch4, use_fates
     use clm_varctl          , only : iulog, fsurdat, paramfile, soil_layerstruct_predefined
-    use landunit_varcon     , only : istdlak, istwet, istsoil, istcrop, istice, isturb_hd, isturb_md
+    use landunit_varcon     , only : istdlak, istwet, istsoil, istcrop, istice, isturb_hd, isturb_md !Laura C. Gray added isturb_hd, isturb_md
     use column_varcon       , only : icol_roof, icol_sunwall, icol_shadewall, icol_road_perv, icol_road_imperv 
     use fileutils           , only : getfil
     use organicFileMod      , only : organicrd 
