@@ -51,7 +51,6 @@ module clm_varcon
   real(r8), public, parameter :: secsphr = 3600._r8                 ! Seconds in an hour
   integer,  public, parameter :: isecsphr = int(secsphr)            ! Integer seconds in an hour
   integer,  public, parameter :: isecspmin= 60                      ! Integer seconds in a minute
-  integer                     :: lev                                ! indices, added by Laura C. Gray for pondmx do loop
   real(r8), public :: grav   = SHR_CONST_G                          ! gravity constant [m/s2]
   real(r8), public :: sb     = SHR_CONST_STEBOL                     ! stefan-boltzmann constant  [W/m2/K4]
   real(r8), public :: vkc    = SHR_CONST_KARMAN                     ! von Karman constant [-]
@@ -121,7 +120,7 @@ module clm_varcon
   ! Laura's proposed changes 
   do c = begc,endc
      l = col%landunit(c)
-     do lev = 1,nlevgrnd
+     do (1:nlevgrnd)
        if (lun%itype(l) == isturb_hd .or. isturb_md .and. col%itype(c) == icol_road_perv) then 
          pondmx = 0.15_r8
        else
