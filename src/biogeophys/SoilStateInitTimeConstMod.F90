@@ -213,7 +213,7 @@ contains
     real(r8)           :: perturbed_residual_clay_frac  ! temporary for paramfile implementation of +/- residual clay percentage
     integer            :: dimid                         ! dimension id
     !Laura C. Gray adding a variable for the number of layers for the rain garden
-    integer            :: nlevgard     = 6_r8           ! number of layers of the soil layers being changed to represent the rain garden
+    integer            :: nlevgard     = 7_r8           ! number of layers of the soil layers being changed to represent the rain garden
     !End of Laura adding a variable
     logical            :: readvar 
     type(file_desc_t)  :: ncid                          ! netcdf id
