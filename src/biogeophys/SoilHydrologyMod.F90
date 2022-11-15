@@ -14,8 +14,8 @@ module SoilHydrologyMod
   use clm_varcon        , only : pondmx_urban
   use clm_varpar        , only : nlevsoi, nlevgrnd, nlayer, nlayert
   use column_varcon     , only : icol_roof, icol_sunwall, icol_shadewall
-  use column_varcon     , only : icol_road_imperv
-  use landunit_varcon   , only : istsoil, istcrop
+  use column_varcon     , only : icol_road_imperv, icol_road_perv !Laura C. Gray added icol_road_perv
+  use landunit_varcon   , only : istsoil, istcrop, isturb_hd, isturb_md !Laura C. Gray added isturb_hd, isturb_md
   use clm_time_manager  , only : get_step_size_real
   use NumericsMod       , only : truncate_small_values
   use EnergyFluxType    , only : energyflux_type
@@ -842,6 +842,9 @@ contains
      ! !USES:
      use clm_varcon       , only : pondmx, tfrz, watmin,rpi, secspday, nlvic
      use column_varcon    , only : icol_roof, icol_road_imperv, icol_road_perv
+     use LandunitType     , only : lun  !Laura C. Gray added this for pondmx changes
+     use landunit_varcon  , only : isturb_hd, isturb_md !Laura C. Gray added this for pondmx changes             
+
      !
      ! !ARGUMENTS:
      type(bounds_type)        , intent(in)    :: bounds               
@@ -1297,7 +1300,16 @@ contains
 
        do fc = 1, num_hydrologyc
           c = filter_hydrologyc(fc)
-
+          
+          !Laura C. Gray adding changes to the pondmx value
+          l = col%landunit(c)
+          if (lun%itype(l) == isturb_hd .or. isturb_md .and. col%itype(c) == icol_road_perv) then 
+             pondmx = 0.015_r8
+          else
+             pondmx = 0.0_r8 
+          end if   
+          !End Laura's changes
+          
           ! watmin addition to fix water balance errors
           xs1(c)          = max(max(h2osoi_liq(c,1)-watmin,0._r8)- &
                max(0._r8,(pondmx+watsat(c,1)*dzmm(c,1)-h2osoi_ice(c,1)-watmin)),0._r8)
@@ -1645,7 +1657,7 @@ contains
      !
      ! !USES:
      use clm_varcon       , only : pondmx, tfrz, watmin,rpi, secspday, nlvic
-     use column_varcon    , only : icol_roof, icol_road_imperv, icol_road_perv
+     use column_varcon    , only : icol_roof, icol_road_imperv, icol_road_perv          
 
      !
      ! !ARGUMENTS:
@@ -1902,7 +1914,9 @@ contains
      ! !USES:
      use clm_varcon       , only : pondmx, watmin,rpi, secspday, nlvic
      use column_varcon    , only : icol_roof, icol_road_imperv, icol_road_perv
-     use GridcellType     , only : grc                
+     use GridcellType     , only : grc
+     use LandunitType     , only : lun  !Laura C. Gray added this for pondmx changes
+     use landunit_varcon  , only : isturb_hd, isturb_md !Laura C. Gray added this for pondmx changes                   
 
      !
      ! !ARGUMENTS:
@@ -2112,6 +2126,15 @@ contains
 
        do fc = 1, num_hydrologyc
           c = filter_hydrologyc(fc)
+          
+          !Laura C. Gray adding changes to the pondmx value
+          l = col%landunit(c)
+          if (lun%itype(l) == isturb_hd .or. isturb_md .and. col%itype(c) == icol_road_perv) then 
+             pondmx = 0.015_r8
+          else
+             pondmx = 0.0_r8 
+          end if   
+          !End Laura's changes
 
           ! watmin addition to fix water balance errors
           xs1(c) = max(max(h2osoi_liq(c,1)-watmin,0._r8)- &
