@@ -17,10 +17,6 @@ module clm_varcon
   use clm_varpar   , only: numrad, nlevgrnd, nlevlak, nlevdecomp_full
   use clm_varpar   , only: ngases
   use clm_varpar   , only: nlayer
-  use LandunitType , only: lun  !Laura C. Gray added this for my do loop about pondmx              
-  use ColumnType   , only: col  !Laura C. Gray added this for my do loop about pondmx 
-  use landunit_varcon  , only: isturb_hd, isturb_md !Laura C. Gray added this for my do loop about pondmx  
-  use column_varcon    , only: icol_road_perv       !Laura C. Gray added this for my do loop about pondmx  
   
   !
   ! !PUBLIC TYPES:
@@ -117,18 +113,6 @@ module clm_varcon
   real(r8), public :: capr   = 0.34_r8      ! Tuning factor to turn first layer T into surface T
   real(r8), public :: cnfac  = 0.5_r8       ! Crank Nicholson factor between 0 and 1
   real(r8), public :: pondmx = 0.0_r8       ! Ponding depth (mm)
-  ! Laura's proposed changes 
-  do c = begc,endc
-     l = col%landunit(c)
-     do (1:nlevgrnd)
-       if (lun%itype(l) == isturb_hd .or. isturb_md .and. col%itype(c) == icol_road_perv) then 
-         pondmx = 0.15_r8
-       else
-         pondmx = 0.0_r8
-       end if
-     end do
-  end do
-  ! End Laura's changes (also, would it be easier to do this in the specific subroutines that do call col/landunit?)
   real(r8), public :: pondmx_urban = 1.0_r8 ! Ponding depth for urban roof and impervious road (mm)
 
   real(r8), public :: thk_bedrock = 3.0_r8  ! thermal conductivity of 'typical' saturated granitic rock 
