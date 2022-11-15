@@ -841,7 +841,8 @@ contains
      !
      ! !USES:
      use clm_varcon       , only : pondmx, tfrz, watmin,rpi, secspday, nlvic
-     use column_varcon    , only : icol_roof, icol_road_imperv, icol_road_perv
+     use column_varcon    , only : icol_roof, icol_road_imperv, icol_road_perv           
+     use ColumnType       , only : col  !Laura C. Gray added this for pondmx changes
      use LandunitType     , only : lun  !Laura C. Gray added this for pondmx changes
      use landunit_varcon  , only : isturb_hd, isturb_md !Laura C. Gray added this for pondmx changes             
 
@@ -1915,6 +1916,7 @@ contains
      use clm_varcon       , only : pondmx, watmin,rpi, secspday, nlvic
      use column_varcon    , only : icol_roof, icol_road_imperv, icol_road_perv
      use GridcellType     , only : grc
+     use ColumnType       , only : col  !Laura C. Gray added this for pondmx changes
      use LandunitType     , only : lun  !Laura C. Gray added this for pondmx changes
      use landunit_varcon  , only : isturb_hd, isturb_md !Laura C. Gray added this for pondmx changes                   
 
