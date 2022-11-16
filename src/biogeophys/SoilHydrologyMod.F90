@@ -909,6 +909,7 @@ contains
      real(r8) :: frac                     ! temporary variable for ARNO subsurface runoff calculation
      real(r8) :: rel_moist                ! relative moisture, temporary variable
      real(r8) :: wtsub_vic                ! summation of hk*dzmm for layers in the third VIC layer
+     real(r8) :: newpondmx                ! Laura c. Gray is adding this variable to account for pondmx changes
      !-----------------------------------------------------------------------
 
      associate(                                                            & 
@@ -1305,15 +1306,15 @@ contains
           !Laura C. Gray adding changes to the pondmx value
           l = col%landunit(c)
           if (lun%itype(l) == isturb_hd .or. isturb_md .and. col%itype(c) == icol_road_perv) then 
-             pondmx = 0.015_r8
+             newpondmx = 0.015_r8
           else
-             pondmx = 0.0_r8 
+             newpondmx = 0.0_r8 
           end if   
           !End Laura's changes
           
           ! watmin addition to fix water balance errors
           xs1(c)          = max(max(h2osoi_liq(c,1)-watmin,0._r8)- &
-               max(0._r8,(pondmx+watsat(c,1)*dzmm(c,1)-h2osoi_ice(c,1)-watmin)),0._r8)
+               max(0._r8,(newpondmx+watsat(c,1)*dzmm(c,1)-h2osoi_ice(c,1)-watmin)),0._r8)
           h2osoi_liq(c,1) = h2osoi_liq(c,1) - xs1(c)
 
           if (lun%urbpoi(col%landunit(c))) then
@@ -1329,8 +1330,8 @@ contains
              endif
           endif
           ! add in ice check
-          xs1(c)          = max(max(h2osoi_ice(c,1),0._r8)-max(0._r8,(pondmx+watsat(c,1)*dzmm(c,1)-h2osoi_liq(c,1))),0._r8)
-          h2osoi_ice(c,1) = min(max(0._r8,pondmx+watsat(c,1)*dzmm(c,1)-h2osoi_liq(c,1)), h2osoi_ice(c,1))
+          xs1(c)          = max(max(h2osoi_ice(c,1),0._r8)-max(0._r8,(newpondmx+watsat(c,1)*dzmm(c,1)-h2osoi_liq(c,1))),0._r8)
+          h2osoi_ice(c,1) = min(max(0._r8,newpondmx+watsat(c,1)*dzmm(c,1)-h2osoi_liq(c,1)), h2osoi_ice(c,1))
           qflx_ice_runoff_xs(c) = xs1(c) / dtime
        end do
 
@@ -1968,6 +1969,7 @@ contains
      real(r8) :: frac                     ! temporary variable for ARNO subsurface runoff calculation
      real(r8) :: rel_moist                ! relative moisture, temporary variable
      real(r8) :: wtsub_vic                ! summation of hk*dzmm for layers in the third VIC layer
+     real(r8) :: newpondmx                ! Laura c. Gray is adding this variable to account for pondmx changes
      integer :: g
      !-----------------------------------------------------------------------
 
@@ -2132,15 +2134,15 @@ contains
           !Laura C. Gray adding changes to the pondmx value
           l = col%landunit(c)
           if (lun%itype(l) == isturb_hd .or. isturb_md .and. col%itype(c) == icol_road_perv) then 
-             pondmx = 0.015_r8
+             newpondmx = 0.015_r8
           else
-             pondmx = 0.0_r8 
+             newpondmx = 0.0_r8 
           end if   
           !End Laura's changes
 
           ! watmin addition to fix water balance errors
           xs1(c) = max(max(h2osoi_liq(c,1)-watmin,0._r8)- &
-               max(0._r8,(pondmx+watsat(c,1)*dzmm(c,1)-h2osoi_ice(c,1)-watmin)),0._r8)
+               max(0._r8,(newpondmx+watsat(c,1)*dzmm(c,1)-h2osoi_ice(c,1)-watmin)),0._r8)
           h2osoi_liq(c,1) = h2osoi_liq(c,1) - xs1(c)
 
           if (lun%urbpoi(col%landunit(c))) then
@@ -2151,8 +2153,8 @@ contains
              qflx_rsub_sat(c)     = 0._r8
           endif
           ! add in ice check
-          xs1(c)          = max(max(h2osoi_ice(c,1),0._r8)-max(0._r8,(pondmx+watsat(c,1)*dzmm(c,1)-h2osoi_liq(c,1))),0._r8)
-          h2osoi_ice(c,1) = min(max(0._r8,pondmx+watsat(c,1)*dzmm(c,1)-h2osoi_liq(c,1)), h2osoi_ice(c,1))
+          xs1(c)          = max(max(h2osoi_ice(c,1),0._r8)-max(0._r8,(newpondmx+watsat(c,1)*dzmm(c,1)-h2osoi_liq(c,1))),0._r8)
+          h2osoi_ice(c,1) = min(max(0._r8,newpondmx+watsat(c,1)*dzmm(c,1)-h2osoi_liq(c,1)), h2osoi_ice(c,1))
           qflx_ice_runoff_xs(c) = xs1(c) / dtime
        end do
 
