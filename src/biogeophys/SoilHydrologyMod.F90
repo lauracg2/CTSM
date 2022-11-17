@@ -1306,7 +1306,7 @@ contains
           !Laura C. Gray adding changes to the pondmx value
           l = col%landunit(c)
           if (lun%itype(l) == isturb_hd .or. isturb_md .and. col%itype(c) == icol_road_perv) then 
-             newpondmx = 0.015_r8
+             newpondmx = 15.0_r8
           else
              newpondmx = 0.0_r8 
           end if   
@@ -2134,7 +2134,7 @@ contains
           !Laura C. Gray adding changes to the pondmx value
           l = col%landunit(c)
           if (lun%itype(l) == isturb_hd .or. isturb_md .and. col%itype(c) == icol_road_perv) then 
-             newpondmx = 0.015_r8
+             newpondmx = 15.0_r8
           else
              newpondmx = 0.0_r8 
           end if   
