@@ -1301,10 +1301,9 @@ contains
        end do
 
        do fc = 1, num_hydrologyc
-          c = filter_hydrologyc(fc)
           
           !Laura C. Gray adding changes to the pondmx value
-          l = col%landunit(c)
+          l = col%landunit(fc)
           if (lun%itype(l) == isturb_hd .or. isturb_md .and. col%itype(c) == icol_road_perv) then 
              newpondmx = 15.0_r8
           else
@@ -1312,6 +1311,7 @@ contains
           end if   
           !End Laura's changes
           
+          c = filter_hydrologyc(fc)
           ! watmin addition to fix water balance errors
           xs1(c)          = max(max(h2osoi_liq(c,1)-watmin,0._r8)- &
                max(0._r8,(newpondmx+watsat(c,1)*dzmm(c,1)-h2osoi_ice(c,1)-watmin)),0._r8)
@@ -2129,10 +2129,9 @@ contains
        end do
 
        do fc = 1, num_hydrologyc
-          c = filter_hydrologyc(fc)
           
           !Laura C. Gray adding changes to the pondmx value
-          l = col%landunit(c)
+          l = col%landunit(fc)
           if (lun%itype(l) == isturb_hd .or. isturb_md .and. col%itype(c) == icol_road_perv) then 
              newpondmx = 15.0_r8
           else
@@ -2140,6 +2139,7 @@ contains
           end if   
           !End Laura's changes
 
+          c = filter_hydrologyc(fc)
           ! watmin addition to fix water balance errors
           xs1(c) = max(max(h2osoi_liq(c,1)-watmin,0._r8)- &
                max(0._r8,(newpondmx+watsat(c,1)*dzmm(c,1)-h2osoi_ice(c,1)-watmin)),0._r8)
