@@ -528,12 +528,6 @@ contains
                 !determine the type of pedotransfer function to be used based on soil order
                 !I will use the following implementation to further explore the ET problem, now
                 !I set soil order to 0 for all soils. Jinyun Tang, Mar 20, 2014
-
-                  watsat = 0.489_r8 - 0.00126_r8*sand
-                  bsw    = 2.91_r8 + 0.159_r8*clay
-                  sucsat = 10._r8 * ( 10._r8**(1.88_r8-0.0131_r8*sand) )            
-                  xksat         = 0.0070556_r8 *( 10._r8**(-0.884_r8+0.0153_r8*sand) ) ! mm/s, from table 5 
-                  
                 !Laura C. Gray overriding pedotransfer function calling and coding manually
                 if (lun%itype(l) == isturb_hd .or. isturb_md .and. col%itype(c) == icol_road_perv .and. lev <= nlevgard) then 
                   soilstate_inst%watsat_col(c,lev) = 0.489_r8 - 0.00126_r8*60._r8
@@ -544,6 +538,7 @@ contains
                   ipedof=get_ipedof(0)
                   call pedotransf(ipedof, sand, clay, &
                      soilstate_inst%watsat_col(c,lev), soilstate_inst%bsw_col(c,lev), soilstate_inst%sucsat_col(c,lev), xksat)
+                end if
                 
                 !Laura C. Gray commented out the original pedotransfer fxn, trying to hard code it to account for changes in top 7 layers
                 !ipedof=get_ipedof(0)
