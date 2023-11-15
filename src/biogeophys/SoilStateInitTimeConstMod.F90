@@ -579,7 +579,8 @@ contains
                                                       (sand+clay)+params_inst%tkm_om*om_frac ! W/(m K)
                   soilstate_inst%bsw_col(c,lev)       = params_inst%bsw_sf * ( (1._r8-om_frac) * &
                                                       (2.91_r8 + 0.159_r8*clay) + om_frac*om_b )  
-                                       
+                end if
+                                                       
                 !original tkm and bsw_col calculations have been commented out below 
                 !tkm                                 = (1._r8-om_frac) * (params_inst%tkd_sand*sand+params_inst%tkd_clay*clay)/ &
                 !                                      (sand+clay)+params_inst%tkm_om*om_frac ! W/(m K)
