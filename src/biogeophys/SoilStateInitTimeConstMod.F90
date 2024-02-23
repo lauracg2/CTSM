@@ -172,7 +172,7 @@ contains
     use clm_varcon          , only : secspday, denh2o, denice, grlnd
     use clm_varctl          , only : use_cn, use_lch4, use_fates
     use clm_varctl          , only : iulog, fsurdat, paramfile, soil_layerstruct_predefined
-    use landunit_varcon     , only : istdlak, istwet, istsoil, istcrop, istice
+    use landunit_varcon     , only : istdlak, istwet, istsoil, istcrop, istice, isturb_hd, isturb_md !Laura C. Gray added isturb_hd, isturb_md
     use column_varcon       , only : icol_roof, icol_sunwall, icol_shadewall, icol_road_perv, icol_road_imperv 
     use fileutils           , only : getfil
     use organicFileMod      , only : organicrd 
@@ -212,6 +212,9 @@ contains
     real(r8)           :: residual_clay_frac            ! temporary for paramfile implementation of +/- residual clay percentage
     real(r8)           :: perturbed_residual_clay_frac  ! temporary for paramfile implementation of +/- residual clay percentage
     integer            :: dimid                         ! dimension id
+    !Laura C. Gray adding a variable for the number of layers for the rain garden
+    integer            :: nlevgard     = 7_r8           ! number of layers of the soil layers being changed to represent the rain garden
+    !End of Laura adding a variable
     logical            :: readvar 
     type(file_desc_t)  :: ncid                          ! netcdf id
     real(r8) ,pointer  :: zsoifl (:)                    ! Output: [real(r8) (:)]  original soil midpoint 
@@ -526,9 +529,24 @@ contains
                 !I will use the following implementation to further explore the ET problem, now
                 !I set soil order to 0 for all soils. Jinyun Tang, Mar 20, 2014
 
-                ipedof=get_ipedof(0)
-                call pedotransf(ipedof, sand, clay, &
+                !Laura C. Gray overriding pedotransfer function calling and coding manually
+                if (lun%itype(l) == isturb_hd .or. isturb_md .and. col%itype(c) == icol_road_perv .and. lev <= nlevgard) then 
+                  soilstate_inst%watsat_col(c,lev) = 0.489_r8 - 0.00126_r8*60._r8
+                  soilstate_inst%bsw_col(c,lev)    = 2.91 + 0.159*10._r8
+                  soilstate_inst%sucsat_col(c,lev) = 10._r8 * ( 10._r8**(1.88_r8-0.0131_r8*60._r8) )
+                  xksat         = 0.0070556_r8 *( 10._r8**(-0.884_r8+0.0153_r8*60._r8) ) ! mm/s, from table 5 
+                else 
+                  ipedof=get_ipedof(0)
+                  call pedotransf(ipedof, sand, clay, &
                      soilstate_inst%watsat_col(c,lev), soilstate_inst%bsw_col(c,lev), soilstate_inst%sucsat_col(c,lev), xksat)
+                end if
+     
+                !Laura C. Gray commented out the original pedotransfer fxn, trying to hard code it to account for changes in top 7 layers
+                !ipedof=get_ipedof(0)
+                !call pedotransf(ipedof, sand, clay, &
+                !     soilstate_inst%watsat_col(c,lev), soilstate_inst%bsw_col(c,lev), soilstate_inst%sucsat_col(c,lev), xksat)
+                !End of Laura changing a few things
+     
 
                 om_watsat         = max(0.93_r8 - 0.1_r8   *(zsoi(lev)/zsapric), 0.83_r8)
                 om_b              = min(2.7_r8  + 9.3_r8   *(zsoi(lev)/zsapric), 12.0_r8)
@@ -537,12 +555,41 @@ contains
 
                 soilstate_inst%bd_col(c,lev)        = (1._r8 - soilstate_inst%watsat_col(c,lev))*params_inst%pd
                 ! do not allow watsat_sf to push watsat above 0.93
-                soilstate_inst%watsat_col(c,lev)    = min(params_inst%watsat_sf * ( (1._r8 - om_frac) * &
-                                                      soilstate_inst%watsat_col(c,lev) + om_watsat*om_frac ), 0.93_r8)
-                tkm                                 = (1._r8-om_frac) * (params_inst%tkd_sand*sand+params_inst%tkd_clay*clay)/ &
+                
+                !Laura C. Gray is attempting to change porosity for rain gardens
+                if (lun%itype(l) == isturb_hd .or. isturb_md .and. col%itype(c) == icol_road_perv .and. lev <= nlevgard) then 
+                   soilstate_inst%watsat_col(c,lev) = 0.44_r8
+                else
+                   soilstate_inst%watsat_col(c,lev)    = min(params_inst%watsat_sf * ( (1._r8 - om_frac) * &
+                                                              soilstate_inst%watsat_col(c,lev) + om_watsat*om_frac ), 0.93_r8)   
+                end if   
+
+                !original porosity function has been commented out below
+                !soilstate_inst%watsat_col(c,lev)    = min(params_inst%watsat_sf * ( (1._r8 - om_frac) * &
+                !                                      soilstate_inst%watsat_col(c,lev) + om_watsat*om_frac ), 0.93_r8)
+                !this is the end of Laura doing things
+
+
+                !Laura C. Gray is changing sand and clay properties for pervious road
+                if (lun%itype(l) == isturb_hd .or. isturb_md .and. col%itype(c) == icol_road_perv .and. lev <= nlevgard) then
+                  tkm                                 = (1._r8-om_frac) * (params_inst%tkd_sand*sand+params_inst%tkd_clay*10)/ &
+                                                      (60._r8+10._r8)+params_inst%tkm_om*om_frac ! W/(m K)
+                  soilstate_inst%bsw_col(c,lev)       = params_inst%bsw_sf * ( (1._r8-om_frac) * &
+                                                      (2.91_r8 + 0.159_r8*10._r8) + om_frac*om_b )
+                else
+                  tkm                                 = (1._r8-om_frac) * (params_inst%tkd_sand*sand+params_inst%tkd_clay*clay)/ &
                                                       (sand+clay)+params_inst%tkm_om*om_frac ! W/(m K)
-                soilstate_inst%bsw_col(c,lev)       = params_inst%bsw_sf * ( (1._r8-om_frac) * &
-                                                      (2.91_r8 + 0.159_r8*clay) + om_frac*om_b )
+                  soilstate_inst%bsw_col(c,lev)       = params_inst%bsw_sf * ( (1._r8-om_frac) * &
+                                                      (2.91_r8 + 0.159_r8*clay) + om_frac*om_b )  
+                end if
+                
+                !original tkm and bsw_col calculations have been commented out below 
+                !tkm                                 = (1._r8-om_frac) * (params_inst%tkd_sand*sand+params_inst%tkd_clay*clay)/ &
+                !                                      (sand+clay)+params_inst%tkm_om*om_frac ! W/(m K)
+                !soilstate_inst%bsw_col(c,lev)       = params_inst%bsw_sf * ( (1._r8-om_frac) * &
+                !                                      (2.91_r8 + 0.159_r8*clay) + om_frac*om_b )
+                !End of Laura doing things here
+
                 soilstate_inst%sucsat_col(c,lev)    = params_inst%sucsat_sf * ( (1._r8-om_frac) * &
                                                       soilstate_inst%sucsat_col(c,lev) + om_sucsat*om_frac ) 
                 soilstate_inst%hksat_min_col(c,lev) = xksat
@@ -565,8 +612,21 @@ contains
                 else
                    uncon_hksat = 0._r8
                 end if
-                soilstate_inst%hksat_col(c,lev)  = params_inst%hksat_sf * ( uncon_frac*uncon_hksat + &
-                                                   (perc_frac*om_frac)*om_hksat )
+               
+               !Laura C. Gray is attempting to change saturated hydraulic conductivity for rain gardens
+                if (lun%itype(l) == isturb_hd .or. isturb_md .and. col%itype(c) == icol_road_perv .and. lev <= nlevgard) then 
+                   soilstate_inst%hksat_col(c,lev) = 0.03194_r8
+                else
+                   soilstate_inst%hksat_col(c,lev) = params_inst%hksat_sf * ( uncon_frac*uncon_hksat + &
+                                                     (perc_frac*om_frac)*om_hksat )
+                !print "Laura's changes worked!"
+                end if
+
+                !original saturated hydraulic conductivity function has been commented out below
+
+                !soilstate_inst%hksat_col(c,lev)  = params_inst%hksat_sf * ( uncon_frac*uncon_hksat + &
+                !                                   (perc_frac*om_frac)*om_hksat )
+                !this is the end of Laura doing things  
 
                 soilstate_inst%tkmg_col(c,lev)   = tkm ** (1._r8- soilstate_inst%watsat_col(c,lev))           
 
