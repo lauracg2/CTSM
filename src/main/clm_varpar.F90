@@ -195,7 +195,7 @@ contains
     mxharvests = mxsowings + 1
 
     nlevsoifl   =  10
-    nlevurb     =  5
+    nlevurb     =  10
 
     if ( masterproc ) write(iulog, *) 'soil_layerstruct_predefined varpar ', soil_layerstruct_predefined
     if ( masterproc ) write(iulog, *) 'soil_layerstruct_userdefined varpar ', soil_layerstruct_userdefined
