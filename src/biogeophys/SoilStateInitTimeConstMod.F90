@@ -530,11 +530,28 @@ contains
                 !I set soil order to 0 for all soils. Jinyun Tang, Mar 20, 2014
 
                 !Laura C. Gray overriding pedotransfer function calling and coding manually
+                !Updated Jun 24, 2024, to reflect % sand and % clay if statements 
                 if (lun%itype(l) == isturb_hd .or. isturb_md .and. col%itype(c) == icol_road_perv .and. lev <= nlevgard) then 
-                  soilstate_inst%watsat_col(c,lev) = 0.489_r8 - 0.00126_r8*60._r8
-                  soilstate_inst%bsw_col(c,lev)    = 2.91 + 0.159*10._r8
-                  soilstate_inst%sucsat_col(c,lev) = 10._r8 * ( 10._r8**(1.88_r8-0.0131_r8*60._r8) )
-                  xksat         = 0.0070556_r8 *( 10._r8**(-0.884_r8+0.0153_r8*60._r8) ) ! mm/s, from table 5 
+                  if (sand < 60._r8 .and. clay > 10._r8) then
+                     soilstate_inst%watsat_col(c,lev) = 0.489_r8 - 0.00126_r8*60._r8
+                     soilstate_inst%bsw_col(c,lev)    = 2.91_r8 + 0.159_r8*10._r8
+                     soilstate_inst%sucsat_col(c,lev) = 10._r8 * ( 10._r8**(1.88_r8-0.0131_r8*60._r8) )
+                     xksat         = 0.0070556_r8 *( 10._r8**(-0.884_r8+0.0153_r8*60._r8) ) ! mm/s, from table 5 
+                  elseif (sand < 60._r8 .and. clay <= 10._r8) then 
+                     soilstate_inst%watsat_col(c,lev) = 0.489_r8 - 0.00126_r8*60._r8
+                     soilstate_inst%bsw_col(c,lev)    = 2.91_r8 + 0.159_r8*clay
+                     soilstate_inst%sucsat_col(c,lev) = 10._r8 * ( 10._r8**(1.88_r8-0.0131_r8*60._r8) )
+                     xksat         = 0.0070556_r8 *( 10._r8**(-0.884_r8+0.0153_r8*60._r8) ) ! mm/s, from table 5
+                  elseif (sand >= 60._r8 .and. clay > 10._r8) then
+                     soilstate_inst%watsat_col(c,lev) = 0.489_r8 - 0.00126_r8*sand
+                     soilstate_inst%bsw_col(c,lev)    = 2.91_r8 + 0.159_r8*10._r8
+                     soilstate_inst%sucsat_col(c,lev) = 10._r8 * ( 10._r8**(1.88_r8-0.0131_r8*sand) )
+                     xksat         = 0.0070556_r8 *( 10._r8**(-0.884_r8+0.0153_r8*sand) ) ! mm/s, from table 5 
+                  else
+                     ipedof=get_ipedof(0)
+                     call pedotransf(ipedof, sand, clay, &
+                        soilstate_inst%watsat_col(c,lev), soilstate_inst%bsw_col(c,lev), soilstate_inst%sucsat_col(c,lev), xksat)
+                  end if
                 else 
                   ipedof=get_ipedof(0)
                   call pedotransf(ipedof, sand, clay, &
@@ -571,11 +588,29 @@ contains
 
 
                 !Laura C. Gray is changing sand and clay properties for pervious road
+                !Updated Jun 24, 2024, to reflect % sand and % clay if statements 
                 if (lun%itype(l) == isturb_hd .or. isturb_md .and. col%itype(c) == icol_road_perv .and. lev <= nlevgard) then
-                  tkm                                 = (1._r8-om_frac) * (params_inst%tkd_sand*sand+params_inst%tkd_clay*10)/ &
-                                                      (60._r8+10._r8)+params_inst%tkm_om*om_frac ! W/(m K)
-                  soilstate_inst%bsw_col(c,lev)       = params_inst%bsw_sf * ( (1._r8-om_frac) * &
-                                                      (2.91_r8 + 0.159_r8*10._r8) + om_frac*om_b )
+                  if (sand < 60._r8 .and. clay > 10._r8) then
+                     tkm                                 = (1._r8-om_frac) * (params_inst%tkd_sand*60._r8+params_inst%tkd_clay*10._r8)/ &
+                                                         (60._r8+10._r8)+params_inst%tkm_om*om_frac ! W/(m K)
+                     soilstate_inst%bsw_col(c,lev)       = params_inst%bsw_sf * ( (1._r8-om_frac) * &
+                                                         (2.91_r8 + 0.159_r8*10._r8) + om_frac*om_b )
+                  elseif (sand < 60._r8 .and. clay <= 10._r8) then 
+                     tkm                                 = (1._r8-om_frac) * (params_inst%tkd_sand*60._r8+params_inst%tkd_clay*clay)/ &
+                                                         (60._r8+clay)+params_inst%tkm_om*om_frac ! W/(m K)
+                     soilstate_inst%bsw_col(c,lev)       = params_inst%bsw_sf * ( (1._r8-om_frac) * &
+                                                         (2.91_r8 + 0.159_r8*clay) + om_frac*om_b )
+                  elseif (sand >= 60._r8 .and. clay > 10._r8) then
+                     tkm                                 = (1._r8-om_frac) * (params_inst%tkd_sand*sand+params_inst%tkd_clay*10._r8)/ &
+                                                         (sand+10._r8)+params_inst%tkm_om*om_frac ! W/(m K)
+                     soilstate_inst%bsw_col(c,lev)       = params_inst%bsw_sf * ( (1._r8-om_frac) * &
+                                                         (2.91_r8 + 0.159_r8*10._r8) + om_frac*om_b )
+                  else
+                     tkm                                 = (1._r8-om_frac) * (params_inst%tkd_sand*sand+params_inst%tkd_clay*clay)/ &
+                                                         (sand+clay)+params_inst%tkm_om*om_frac ! W/(m K)
+                     soilstate_inst%bsw_col(c,lev)       = params_inst%bsw_sf * ( (1._r8-om_frac) * &
+                                                         (2.91_r8 + 0.159_r8*clay) + om_frac*om_b )  
+                  end if                                    
                 else
                   tkm                                 = (1._r8-om_frac) * (params_inst%tkd_sand*sand+params_inst%tkd_clay*clay)/ &
                                                       (sand+clay)+params_inst%tkm_om*om_frac ! W/(m K)
