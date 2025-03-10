@@ -212,9 +212,11 @@ contains
     real(r8)           :: residual_clay_frac            ! temporary for paramfile implementation of +/- residual clay percentage
     real(r8)           :: perturbed_residual_clay_frac  ! temporary for paramfile implementation of +/- residual clay percentage
     integer            :: dimid                         ! dimension id
-    !Laura C. Gray adding a variable for the number of layers for the rain garden
+    !Laura C. Gray adding a variable for the number of layers for the rain garden & parameter converting m to cm
     integer            :: nlevgard     = 7_r8           ! number of layers of the soil layers being changed to represent the rain garden
-    !End of Laura adding a variable
+    real(r8)           :: beta                          ! patch specific shape parameter
+    real(r8), parameter :: m_to_cm = 1.e2_r8
+    !End of Laura adding a variable & parameter
     logical            :: readvar 
     type(file_desc_t)  :: ncid                          ! netcdf id
     real(r8) ,pointer  :: zsoifl (:)                    ! Output: [real(r8) (:)]  original soil midpoint 
@@ -250,6 +252,7 @@ contains
     ! --------------------------------------------------------------------
 
     ! Currently pervious road has same properties as soil
+    ! Note, Laura C. Gray is altering rooting distribution in soil for rain garden (beta=0.943, C3/C4 grasses)
     do c = begc,endc
        l = col%landunit(c)
 
@@ -258,8 +261,26 @@ contains
              soilstate_inst%rootfr_road_perv_col(c,lev) = 0._r8
           enddo
           do lev = 1,nlevsoi
-             soilstate_inst%rootfr_road_perv_col(c,lev) = 1.0_r8/real(nlevsoi,r8)
+             beta = 0.943_r8
+             soilstate_inst%rootfr_road_perv_col(c,lev) = ( &
+               beta ** (col%zi(c,lev-1)*m_to_cm) - &
+               beta ** (col%zi(c,lev)*m_to_cm) )
           end do
+          
+    !Original urban rooting commented out below
+    !do c = begc,endc
+    !   l = col%landunit(c)
+
+    !   if (lun%urbpoi(l) .and. col%itype(c) == icol_road_perv) then 
+          do lev = 1, nlevgrnd
+    !         soilstate_inst%rootfr_road_perv_col(c,lev) = 0._r8
+    !      enddo
+    !      do lev = 1,nlevsoi
+    !         soilstate_inst%rootfr_road_perv_col(c,lev) = 1.0_r8/real(nlevsoi,r8)
+    !      end do      
+    
+    ! End of Laura C. Gray altering urban rooting 
+    
 ! remove roots below bedrock layer
           soilstate_inst%rootfr_road_perv_col(c,1:col%nbedrock(c)) = &
                soilstate_inst%rootfr_road_perv_col(c,1:col%nbedrock(c)) &
