@@ -270,9 +270,9 @@ contains
     !Original urban rooting commented out below
     !do c = begc,endc
     !   l = col%landunit(c)
-
+    !
     !   if (lun%urbpoi(l) .and. col%itype(c) == icol_road_perv) then 
-          do lev = 1, nlevgrnd
+    !      do lev = 1, nlevgrnd
     !         soilstate_inst%rootfr_road_perv_col(c,lev) = 0._r8
     !      enddo
     !      do lev = 1,nlevsoi
