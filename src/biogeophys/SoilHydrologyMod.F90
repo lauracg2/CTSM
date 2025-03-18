@@ -908,6 +908,7 @@ contains
      real(r8) :: frac                     ! temporary variable for ARNO subsurface runoff calculation
      real(r8) :: rel_moist                ! relative moisture, temporary variable
      real(r8) :: wtsub_vic                ! summation of hk*dzmm for layers in the third VIC layer
+     real(r8) :: newpondmx                ! Laura C. Gray is adding this variable to account for pondmx changes (mm)
      !-----------------------------------------------------------------------
 
      associate(                                                            & 
@@ -1301,10 +1302,19 @@ contains
        do fc = 1, num_hydrologyc
           c = filter_hydrologyc(fc)
 
+          ! Laura C. Gray is adding changes to the pondmx value
+          if (col%itype(c) == icol_road_perv) then
+             newpondmx = 150.0_r8
+          else
+             newpondmx = 10.0_r8
+          endif
+          
+          ! Updating pondmx value to be newpondmx
           ! watmin addition to fix water balance errors
           xs1(c)          = max(max(h2osoi_liq(c,1)-watmin,0._r8)- &
-               max(0._r8,(pondmx+watsat(c,1)*dzmm(c,1)-h2osoi_ice(c,1)-watmin)),0._r8)
+               max(0._r8,(newpondmx+watsat(c,1)*dzmm(c,1)-h2osoi_ice(c,1)-watmin)),0._r8)
           h2osoi_liq(c,1) = h2osoi_liq(c,1) - xs1(c)
+          !End of Laura C. Gray's changes
 
           if (lun%urbpoi(col%landunit(c))) then
              qflx_rsub_sat(c)     = xs1(c) / dtime
@@ -1319,11 +1329,13 @@ contains
              endif
           endif
           ! add in ice check
-          xs1(c)          = max(max(h2osoi_ice(c,1),0._r8)-max(0._r8,(pondmx+watsat(c,1)*dzmm(c,1)-h2osoi_liq(c,1))),0._r8)
-          h2osoi_ice(c,1) = min(max(0._r8,pondmx+watsat(c,1)*dzmm(c,1)-h2osoi_liq(c,1)), h2osoi_ice(c,1))
+          ! more updates for newpondmx (Laura C. Gray)
+          xs1(c)          = max(max(h2osoi_ice(c,1),0._r8)-max(0._r8,(newpondmx+watsat(c,1)*dzmm(c,1)-h2osoi_liq(c,1))),0._r8)
+          h2osoi_ice(c,1) = min(max(0._r8,newpondmx+watsat(c,1)*dzmm(c,1)-h2osoi_liq(c,1)), h2osoi_ice(c,1))
           qflx_ice_runoff_xs(c) = xs1(c) / dtime
        end do
-
+       ! End of newpondmx updates for Laura C. Gray
+       
        ! Limit h2osoi_liq to be greater than or equal to watmin.
        ! Get water needed to bring h2osoi_liq equal watmin from lower layer.
        ! If insufficient water in soil layers, get from aquifer water
@@ -1947,6 +1959,7 @@ contains
      real(r8) :: rel_moist                ! relative moisture, temporary variable
      real(r8) :: wtsub_vic                ! summation of hk*dzmm for layers in the third VIC layer
      integer :: g
+     real(r8) :: newpondmx                ! Laura C. Gray is adding this variable to account for pondmx changes (mm)
      !-----------------------------------------------------------------------
 
      associate(                                                            & 
@@ -2106,12 +2119,20 @@ contains
 
        do fc = 1, num_hydrologyc
           c = filter_hydrologyc(fc)
-
+          
+          ! Laura C. Gray is adding changes to the pondmx value
+          if (col%itype(c) == icol_road_perv) then
+             newpondmx = 150.0_r8
+          else
+             newpondmx = 10.0_r8
+          endif
+          
+          ! Updating pondmx value to be newpondmx
           ! watmin addition to fix water balance errors
           xs1(c) = max(max(h2osoi_liq(c,1)-watmin,0._r8)- &
-               max(0._r8,(pondmx+watsat(c,1)*dzmm(c,1)-h2osoi_ice(c,1)-watmin)),0._r8)
+               max(0._r8,(newpondmx+watsat(c,1)*dzmm(c,1)-h2osoi_ice(c,1)-watmin)),0._r8)
           h2osoi_liq(c,1) = h2osoi_liq(c,1) - xs1(c)
-
+          
           if (lun%urbpoi(col%landunit(c))) then
              qflx_rsub_sat(c)     = xs1(c) / dtime
           else
@@ -2120,10 +2141,12 @@ contains
              qflx_rsub_sat(c)     = 0._r8
           endif
           ! add in ice check
-          xs1(c)          = max(max(h2osoi_ice(c,1),0._r8)-max(0._r8,(pondmx+watsat(c,1)*dzmm(c,1)-h2osoi_liq(c,1))),0._r8)
-          h2osoi_ice(c,1) = min(max(0._r8,pondmx+watsat(c,1)*dzmm(c,1)-h2osoi_liq(c,1)), h2osoi_ice(c,1))
+          xs1(c)          = max(max(h2osoi_ice(c,1),0._r8)-max(0._r8,(newpondmx+watsat(c,1)*dzmm(c,1)-h2osoi_liq(c,1))),0._r8)
+          h2osoi_ice(c,1) = min(max(0._r8,newpondmx+watsat(c,1)*dzmm(c,1)-h2osoi_liq(c,1)), h2osoi_ice(c,1))
           qflx_ice_runoff_xs(c) = xs1(c) / dtime
        end do
+          ! End of newpondmx updates for Laura C. Gray
+
 
        ! Limit h2osoi_liq to be greater than or equal to watmin.
        ! Get water needed to bring h2osoi_liq equal watmin from lower layer.
