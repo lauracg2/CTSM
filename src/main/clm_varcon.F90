@@ -113,7 +113,7 @@ module clm_varcon
 
   real(r8), public :: capr   = 0.34_r8      ! Tuning factor to turn first layer T into surface T
   real(r8), public :: cnfac  = 0.5_r8       ! Crank Nicholson factor between 0 and 1
-  real(r8), public :: pondmx = 0.0_r8       ! Ponding depth (mm)
+  real(r8), public :: pondmx = 10.0_r8       ! Ponding depth (mm)
   real(r8), public :: pondmx_urban = 1.0_r8 ! Ponding depth for urban roof and impervious road (mm)
 
   real(r8), public :: thk_bedrock = 3.0_r8  ! thermal conductivity of 'typical' saturated granitic rock 
